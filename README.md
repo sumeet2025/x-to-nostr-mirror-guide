@@ -44,7 +44,7 @@ cd x-to-nostr-mirror-guide/app
 bash scripts/build-mac.sh      # needs Node.js 22.12+ (22 LTS or 24 LTS)
 ```
 
-## Find the creator on Nostr
+## Find me on Nostr
 
 `npub19dfd7w8zxfdfywqmqxpt92wq6tx4p0mvfqv6yuyg0cv9d7duj4uskuccks`
 ([njump.me profile](https://njump.me/npub19dfd7w8zxfdfywqmqxpt92wq6tx4p0mvfqv6yuyg0cv9d7duj4uskuccks))
