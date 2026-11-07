@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; form-action 'none'; base-uri 'none'; frame-ancestors 'none'">
+<title>X to Nostr Mirror</title><link rel="stylesheet" href="styles.css"></head>
+<body>
+<aside>
+  <div class="brand">X <span>→</span> Nostr</div>
+  <div class="section-title">Profiles</div>
+  <ul id="jobList"></ul>
+  <button id="newJob" class="primary wide">+ New profile</button>
+  <div class="spacer"></div>
+  <button id="settingsBtn" class="ghost wide">⚙ Settings &amp; X API</button>
+  <button id="guideBtn" class="ghost wide">📖 User guide</button>
+  <button id="aboutBtn" class="ghost wide">ℹ About</button>
+</aside>
+<main>
+  <div id="globalProgress" class="gprog hidden"></div>
+  <div id="banner" class="banner hidden"></div>
+  <section id="about" class="panel hidden">
+    <h1>About X to Nostr Mirror</h1>
+    <div class="card"><p>X to Nostr Mirror copies posts from X (Twitter) accounts to Nostr accounts from your own computer. It reads posts with your own X developer API token, lets you preview them, publishes them as signed Nostr notes (optionally with their original dates), remembers what was already posted so nothing is duplicated, and can run on a schedule. Your keys stay encrypted in your Mac's Keychain. No tracking, no cloud service.</p>
+      <p class="muted">Version <span id="aboutVersion"></span></p></div>
+    <div class="card"><h2>User guide</h2><div class="row"><button id="aboutGuideLocal" class="primary">Read guide (built in)</button><button id="aboutGuideOnline">Open online guide</button></div><div id="guideOnlineStatus" class="muted"></div></div>
+    <div class="card findme"><h2>Find the creator on Nostr</h2>
+      <div class="findrow"><img id="aboutQr" alt="QR code of the creator's npub" width="180" height="180"><div class="grow">
+        <label>npub</label><div id="aboutNpub" class="mono"></div>
+        <div class="row"><button id="copyNpub">Copy npub</button><button id="openProfile" class="primary">Open profile (njump.me)</button></div>
+        <p class="muted">Scan the QR code with a Nostr app to follow. This is the app creator's account, not one of your mirror destinations.</p></div></div></div>
+  </section>
+  <section id="guide" class="panel hidden"><h1>User guide</h1><pre id="guideText" class="guide"></pre></section>
+  <section id="settings" class="panel hidden">
+    <h1>Settings</h1>
+    <div class="card"><h2>X API access</h2>
+      <p class="muted">Reading posts requires your own <b>X developer app Bearer token</b> (developer.x.com). Your X username/password will not work. Access tiers and pricing are set by X; check the developer portal. The token is encrypted with your OS keychain and never shown again.</p>
+      <div class="row"><input id="xToken" type="password" autocomplete="off" placeholder="Paste Bearer token"><button id="saveToken" class="primary">Verify &amp; save</button><button id="clearToken">Remove</button></div>
+      <div id="tokenStatus" class="muted"></div></div>
+    <div class="card"><h2>Background scheduling (macOS)</h2>
+      <p class="muted">While this app is open, enabled schedules run automatically. To run them when the app is closed, install a LaunchAgent. Nothing runs while the Mac is asleep, off, or offline; missed runs are caught up on the next opportunity.</p>
+      <div class="row"><button id="ldInstall" class="primary">Install background agent</button><button id="ldRemove">Remove</button></div><div id="ldStatus" class="muted"></div></div>
+    <div class="card"><h2>Profiles file</h2><p class="muted">Export/import profile settings without any keys, tokens or history. Imported profiles start disabled.</p>
+      <div class="row"><button id="cfgExport">Export</button><button id="cfgImport">Import</button></div></div>
+    <div class="card"><h2>Storage</h2><div id="storeStatus" class="muted"></div></div>
+  </section>
+  <section id="empty" class="panel"><h1>Welcome</h1><p class="muted">Create a profile to mirror one X account to one Nostr account. Add as many profiles as you like.</p></section>
+  <section id="editor" class="panel hidden">
+    <div class="head"><h1 id="jobTitle">Profile</h1><div class="tabs"><button data-tab="setup" class="tab active">Setup</button><button data-tab="posts" class="tab">Posts</button><button data-tab="schedule" class="tab">Schedule</button><button data-tab="activity" class="tab">Activity</button></div></div>
+    <div id="statusStrip" class="stats"></div>
+    <div id="tab-setup" class="tabpane">
+      <div class="card"><h2>Name</h2><input id="fName" placeholder="e.g. @news mirror"></div>
+      <div class="card"><h2>Source X account</h2><div class="row"><input id="fHandle" placeholder="@handle or x.com/handle"><button id="resolveBtn">Find account</button></div><div id="srcInfo" class="muted"></div></div>
+      <div class="card"><h2>Destination Nostr account</h2>
+        <label>Public key (npub)</label><input id="fNpub" placeholder="npub1…">
+        <label>Secret key (nsec) — needed to post; encrypted in OS keychain</label>
+        <div class="row"><input id="fNsec" type="password" autocomplete="off" placeholder="nsec1… (leave empty to keep saved key)"><button id="verifyKey">Verify &amp; save key</button></div>
+        <div id="keyStatus" class="muted"></div></div>
+      <div class="card"><h2>Relays</h2><textarea id="fRelays" rows="4"></textarea>
+        <div class="row"><label class="inline">Minimum relays that must accept <input id="fMinOk" type="number" min="1" max="20" class="small"></label><button id="testRelays">Test relays</button></div><div id="relayStatus" class="muted"></div></div>
+      <div class="card"><h2>What to mirror</h2><div id="policy" class="checks"></div>
+        <label>Note timestamp</label><select id="fTs"><option value="original">Original X time (backdated)</option><option value="current">Time of publishing</option></select>
+        <label>First run</label><select id="fFirst"><option value="backfill">Include older posts (history the API returns)</option><option value="new_only">Only posts made from now on</option></select>
+        <label>Delay between notes (ms)</label><input id="fDelay" type="number" min="500" class="small"></div>
+      <div class="row"><button id="saveJob" class="primary">Save profile</button><button id="importLegacy">Import old mirror checkpoint…</button><div class="grow"></div><button id="deleteJob" class="danger">Delete profile</button></div>
+    </div>
+    <div id="tab-posts" class="tabpane hidden">
+      <div class="card"><div class="row"><button id="pvNew" class="primary">Fetch new posts</button><button id="pvAll">Fetch history (backfill)</button><button id="pvFile">Load saved X JSON…</button></div>
+        <div class="row rangebar"><span>Date range:</span><input id="rFrom" type="date" class="date"><span>to</span><input id="rTo" type="date" class="date"><input id="rTz" class="tz" placeholder="Time zone"><button id="pvRange">Fetch range</button></div>
+        <div class="muted">Dates are inclusive whole days in the time zone shown. Fetching only previews — nothing is posted until you click Publish selected and confirm. X only returns about the latest 3,200 posts of an account, so older dates may come back empty.</div></div>
+      <div class="row"><label class="inline"><input type="checkbox" id="selAll"> Select all eligible</label><div class="grow"></div><span id="selCount" class="muted"></span><button id="publishSel" class="primary">Publish selected</button></div>
+      <div id="runCard" class="card hidden"></div>
+      <div id="pvSummary" class="muted"></div><div id="posts"></div>
+    </div>
+    <div id="tab-schedule" class="tabpane hidden">
+      <div class="card"><h2>Schedule</h2>
+        <label class="inline"><input type="checkbox" id="sEnabled"> Run on a schedule</label>
+        <label>Start date &amp; time</label><input id="sStart" type="datetime-local">
+        <label>Every</label><div class="row"><input id="sEvery" type="number" min="15" class="small"><select id="sUnit"><option value="1">minutes</option><option value="60" selected>hours</option><option value="1440">days</option></select></div>
+        <label class="inline"><input type="checkbox" id="sHoursOn"> Only between <input id="sFrom" type="number" min="0" max="23" class="small"> and <input id="sTo" type="number" min="0" max="23" class="small"> o'clock</label>
+        <label>Time zone</label><input id="sTz" placeholder="e.g. Asia/Jerusalem">
+        <label class="inline warn"><input type="checkbox" id="sPublish"> Allow scheduled runs to publish without preview</label>
+        <div class="row"><button id="saveSched" class="primary">Save schedule</button><button id="runNow">Run now</button></div>
+        <div id="schedStatus" class="muted"></div></div>
+    </div>
+    <div id="tab-activity" class="tabpane hidden"><div id="stats" class="stats"></div><pre id="log"></pre></div>
+  </section>
+</main>
+<script src="app.js"></script>
+</body></html>

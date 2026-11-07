@@ -1,0 +1,31 @@
+*{box-sizing:border-box}body{margin:0;display:flex;height:100vh;font:14px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#0f1117;color:#e6e6ea}
+aside{width:250px;background:#151823;padding:18px;display:flex;flex-direction:column;border-right:1px solid #232838}
+.brand{font-size:20px;font-weight:700;margin-bottom:22px}.brand span{color:#a46cff}
+.section-title{text-transform:uppercase;font-size:11px;color:#7b8197;letter-spacing:.08em;margin-bottom:8px}
+ul{list-style:none;padding:0;margin:0 0 12px}li{padding:9px 10px;border-radius:8px;cursor:pointer;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center}
+li:hover{background:#1e2230}li.active{background:#2a2350}.dot{width:8px;height:8px;border-radius:50%;background:#555}.dot.on{background:#4ade80}.dot.err{background:#f87171}
+.spacer{flex:1}main{flex:1;overflow:auto;padding:26px 34px}.panel h1{margin:0 0 16px;font-size:22px}
+.card{background:#171a25;border:1px solid #232838;border-radius:12px;padding:16px;margin-bottom:14px}.card h2{margin:0 0 10px;font-size:15px}
+input,select,textarea{background:#0f1117;color:#e6e6ea;border:1px solid #2c3246;border-radius:8px;padding:8px 10px;font:inherit;width:100%}
+textarea{font-family:ui-monospace,Menlo,monospace;font-size:12px}input.small{width:80px;display:inline-block}
+label{display:block;margin:10px 0 4px;color:#9aa0b4;font-size:12px}label.inline{display:flex;gap:8px;align-items:center;color:#e6e6ea;font-size:14px}label.inline input[type=checkbox]{width:auto}
+.row{display:flex;gap:8px;align-items:center;margin-top:8px}.row input{flex:1}.grow{flex:1}
+button{background:#232838;color:#e6e6ea;border:1px solid #2f3550;border-radius:8px;padding:8px 14px;font:inherit;cursor:pointer;white-space:nowrap}button:hover{background:#2c3246}
+button.primary{background:#7c3aed;border-color:#7c3aed}button.primary:hover{background:#8b5cf6}button.danger{color:#f87171}button.ghost{background:none}button.wide{width:100%}
+button:disabled{opacity:.5;cursor:default}.muted{color:#8b91a7;font-size:13px;margin-top:6px}.warn{color:#fbbf24!important}
+.head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.tabs{display:flex;gap:4px}.tab{background:none;border-color:transparent}.tab.active{background:#2a2350;border-color:#3b3170}
+.hidden{display:none!important}.checks{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.banner{padding:10px 14px;border-radius:8px;margin-bottom:14px;background:#2a2350}.banner.err{background:#4a1d24}
+.post{background:#171a25;border:1px solid #232838;border-radius:10px;padding:12px;margin:8px 0;display:flex;gap:12px}.post input{width:auto;margin-top:3px}
+.post .body{flex:1;white-space:pre-wrap;word-break:break-word}.badge{font-size:11px;padding:2px 7px;border-radius:10px;background:#2c3246;margin-right:6px}.badge.publish{background:#2a4d36}.badge.skip{background:#4a3a1d}.badge.already{background:#1d3a4a}
+.meta{font-size:12px;color:#8b91a7;margin-bottom:6px}.stats{display:flex;gap:12px;margin-bottom:12px}.stat{background:#171a25;border:1px solid #232838;border-radius:10px;padding:12px 16px}.stat b{display:block;font-size:20px}
+pre{background:#0b0d13;border:1px solid #232838;border-radius:10px;padding:12px;font-size:12px;max-height:60vh;overflow:auto;white-space:pre-wrap}
+
+.gprog{position:sticky;top:-26px;z-index:5;background:#1b1640;border:1px solid #3b3170;border-radius:10px;padding:10px 14px;margin:-6px 0 14px;font-size:13px}
+.gprog .bar{height:6px;background:#2c3246;border-radius:3px;margin-top:6px;overflow:hidden}.gprog .bar i{display:block;height:100%;background:#8b5cf6;transition:width .3s}
+.rangebar span{color:#9aa0b4}input.date{width:160px;flex:none}input.tz{width:170px;flex:none}
+.findrow{display:flex;gap:18px;align-items:flex-start}.findrow img{border-radius:10px;background:#fff;padding:6px}.mono{font-family:ui-monospace,Menlo,monospace;font-size:12px;word-break:break-all;background:#0f1117;padding:8px;border-radius:8px;border:1px solid #2c3246}
+pre.guide{max-height:none;font-size:13px;line-height:1.5;font-family:-apple-system,BlinkMacSystemFont,sans-serif}
+li .sub{display:block;font-size:11px;color:#8b91a7;margin-top:2px}li .nm{overflow:hidden;text-overflow:ellipsis}
+.stat small{display:block;color:#8b91a7;font-size:11px;margin-top:2px}.stats{flex-wrap:wrap}
+.runstate{font-weight:600}.runstate.failed,.runstate.interrupted{color:#f87171}.runstate.done{color:#4ade80}.runstate.running{color:#c4b5fd}.runstate.cancelled{color:#fbbf24}

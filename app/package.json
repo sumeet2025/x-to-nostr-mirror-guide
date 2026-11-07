@@ -1,0 +1,53 @@
+{
+  "name": "x-nostr-mirror",
+  "productName": "X to Nostr Mirror",
+  "version": "0.2.0",
+  "description": "Local desktop app that mirrors X (Twitter) posts to Nostr, with multiple profiles and a scheduler.",
+  "main": "src/main/main.js",
+  "license": "MIT",
+  "author": "X to Nostr Mirror contributors",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test test/*.test.js",
+    "security-check": "node scripts/security-check.js",
+    "dist:mac": "electron-builder --mac zip --x64 --arm64",
+    "dist:linux": "electron-builder --linux AppImage",
+    "dist:mac-arm64": "electron-builder --mac zip --arm64",
+    "dist:mac-x64": "electron-builder --mac zip --x64"
+  },
+  "dependencies": {
+    "@noble/hashes": "^1.8.0",
+    "nostr-tools": "^2.25.5",
+    "qrcode": "^1.5.4",
+    "ws": "^8.22.1"
+  },
+  "devDependencies": {
+    "electron": "^38.0.0",
+    "electron-builder": "^26.0.0",
+    "jsqr": "^1.4.0"
+  },
+  "build": {
+    "appId": "org.example.xnostrmirror",
+    "files": [
+      "src/**/*",
+      "package.json",
+      "LICENSE",
+      "THIRD_PARTY_NOTICES.md"
+    ],
+    "mac": {
+      "category": "public.app-category.social-networking",
+      "target": [
+        "zip"
+      ],
+      "identity": null
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ]
+    }
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  }
+}

@@ -1,0 +1,27 @@
+# dependencies and build output
+node_modules/
+dist/
+*.zip
+*.part[0-9][0-9]
+*.dmg
+*.app/
+# secrets and local configuration
+.env
+.env.*
+*.pem
+*.key
+secrets*.json
+# user data / mirror state (never commit)
+state.json
+events.jsonl
+run.json
+run.lock
+jobs.json
+raw/
+tco_cache.json
+backups/
+*.log
+log.txt
+app-meta.json
+# OS / editor
+.DS_Store
