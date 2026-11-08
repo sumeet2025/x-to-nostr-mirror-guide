@@ -116,6 +116,39 @@ the relays and the timestamp mode. Publishing starts only after you confirm.
 - A post counts as published only when at least your minimum number of relays accept it.
   Otherwise it is shown as **failed** and retried later.
 
+### Pictures and videos
+
+- **Publishing:** Nostr notes **link** to the pictures and videos on X's own servers (`pbs.twimg.com`,
+  `video.twimg.com`), with `imeta` tags so Nostr apps can show them.
+  - Videos and GIFs link to the highest-quality MP4.
+  - The app does **not upload** media anywhere. Nostr relays store text notes, not video files.
+  - If X removes a file, the link in the note stops working.
+  - Hosting copies elsewhere (for example a Blossom or nostr.build server) would need a storage service
+    you choose. It isn't built in.
+- **Saving copies to your computer (optional):** under the post list, open
+  **Save selected posts & media to this computer**.
+  1. **Choose folder…**: pick any folder, for example `Downloads/X to Nostr Mirror`. The app remembers it
+     per profile and saves into a sub-folder named after the profile.
+     - Only the exported files go there. Your keys, token, history and settings stay in the app's
+       protected data folder and are never exported.
+  2. Choose whether to include pictures and videos, and the video quality: highest-quality MP4 or
+     smallest MP4.
+  3. **Check download size**: the app asks X's media servers for each file's size, using a size-only
+     request or a 1-byte request. It doesn't download the files.
+     - Files whose size the server doesn't report are listed as *unknown*.
+     - Videos only offered as a stream (HLS) can't be saved as one file and are listed separately.
+     - Sizes are estimates; actual network use may differ slightly.
+     - Fetching posts from the X API is separate. Its data size isn't known in advance, and X's API
+       charges are a separate matter.
+  4. **Save to folder…** shows the known total, the number of unknown sizes and a stop limit
+     (5 GB by default), and asks you to confirm.
+     - It writes `posts-<date>.json` (the selected posts' data) and the files in `media/`, two at a time,
+       with live progress.
+     - **Cancel download** stops safely. Unfinished files are deleted, never left half-written.
+  - Running it again skips files already saved (tracked in `manifest.json`).
+  - Existing files are never overwritten: a new copy gets `-2`, `-3`, and so on.
+  - Only X's media servers are contacted, and no login or token is sent to them.
+
 ---
 
 ## 5. Status: what the numbers mean
@@ -203,6 +236,7 @@ Then tick **Allow scheduled runs to publish without preview**. Nothing runs auto
 | Rate limit | The app waits for X's reset time automatically. Try later for big backfills. |
 | Only n/m relays accepted | The relay may be down or rate-limiting. The same note is retried next run. |
 | Secure storage unavailable | Linux without a keyring. On macOS, allow the Keychain prompt. |
+| Media size unknown | The server didn't report it; the download still works and is limited by the stop limit. |
 | Range returns nothing | The dates are older than the ~3,200 posts X makes available, or there were no posts. |
 
 ---

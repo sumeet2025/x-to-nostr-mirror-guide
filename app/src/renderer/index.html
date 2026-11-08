@@ -67,6 +67,14 @@
         <div class="muted">Dates are inclusive whole days in the time zone shown. Fetching only previews — nothing is posted until you click Publish selected and confirm. X only returns about the latest 3,200 posts of an account, so older dates may come back empty.</div></div>
       <div class="row"><label class="inline"><input type="checkbox" id="selAll"> Select all eligible</label><div class="grow"></div><span id="selCount" class="muted"></span><button id="publishSel" class="primary">Publish selected</button></div>
       <div id="runCard" class="card hidden"></div>
+      <details class="card" id="dlCard"><summary><b>Save selected posts &amp; media to this computer (optional)</b></summary>
+        <p class="muted">Separate from publishing. Nostr notes always link to the pictures/videos on X's servers; nothing is uploaded anywhere. This only saves copies (post data as JSON, plus picture/video files) into a folder you choose. Your keys, token and history stay in the app's protected data folder and are never exported.</p>
+        <div class="row"><span id="dlFolder" class="muted grow">No folder chosen</span><button id="dlChoose">Choose folder…</button><button id="dlOpen">Open folder</button></div>
+        <div class="row"><label class="inline"><input type="checkbox" id="dlMedia" checked> Include pictures &amp; videos</label>
+          <select id="dlQuality" class="small2"><option value="highest">Video: highest quality MP4</option><option value="lowest">Video: smallest MP4</option></select>
+          <label class="inline">Stop at <input id="dlCap" type="number" min="0.1" max="50" step="0.5" value="5" class="small"> GB</label></div>
+        <div class="row"><button id="dlCheck">Check download size</button><button id="dlStart" class="primary">Save to folder…</button><button id="dlCancel" class="hidden">Cancel download</button></div>
+        <div id="dlSummary" class="muted"></div><div id="dlProgress" class="muted"></div></details>
       <div id="pvSummary" class="muted"></div><div id="posts"></div>
     </div>
     <div id="tab-schedule" class="tabpane hidden">

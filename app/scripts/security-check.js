@@ -31,6 +31,10 @@ const checks = [
   ['external links only via fixed allowlist', !/shell\.openExternal\((?!About\.externalUrl\()/.test(main) && /setWindowOpenHandler\(\(\) => \(\{ action: 'deny' \}\)\)/.test(main)],
   ['clipboard only writes the fixed author npub', (main.match(/clipboard\.writeText\(/g) || []).length === 1 && /clipboard\.writeText\(About\.validNpub\(About\.AUTHOR_NPUB\)\)/.test(main)],
   ['no donation/payment addresses', !/lightning:|lnurl|bc1q|lud16/i.test(main + core + app + html)],
+  ['media downloads restricted to X media CDN hosts', /MEDIA_HOSTS = \['pbs\.twimg\.com', 'video\.twimg\.com'\]/.test(core) && /redirect: 'manual'/.test(core)],
+  ['media requests never send credentials', /credentials: 'omit'/.test(core) && !/Authorization/.test(r('src/core/media.js'))],
+  ['shell.openPath only opens the chosen export folder', (main.match(/shell\.openPath\(/g) || []).length === 1 && /shell\.openPath\(j\.downloadFolder\)/.test(main)],
+  ['exported profile settings exclude local folder paths', /consecutiveFailures, downloadFolder, \.\.\.rest/.test(main)],
   ['no console logging of secrets', !/console\.(log|error)\([^)]*(nsec|bearer|getSecret|secrets\.get)/i.test(main + core)],
 ];
 let fail = 0;

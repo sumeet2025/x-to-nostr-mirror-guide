@@ -17,6 +17,8 @@ const L = require('../core/launchd');
 const { stateStats } = require('../core/mirror');
 const { backupBeforeUpgrade } = require('../core/upgrade');
 const About = require('../core/about');
+const Media = require('../core/media');
+const { loadBatch } = require('../core/mirror');
 const { clipboard } = require('electron');
 
 app.setName('X to Nostr Mirror');
@@ -25,7 +27,8 @@ if (process.env.XNM_USER_DATA) app.setPath('userData', path.resolve(process.env.
 const SMOKE = process.env.XNM_SMOKE === '1';
 let store, secrets, win;
 let quitting = false;
-const previewCache = new Map(); // jobId -> responses previewed (kept in main memory only)
+const previewCache = new Map();
+const mediaPlans = new Map(); const mediaRuns = new Map(); // jobId -> responses previewed (kept in main memory only)
 
 function deps() {
   return {
@@ -69,7 +72,7 @@ if (RUN_DUE) {
   app.on('second-instance', () => { if (win) { if (win.isMinimized()) win.restore(); win.focus(); } });
   app.whenReady().then(() => { init(); hardenSession(); registerIpc(); createWindow(); startInAppScheduler(); });
   app.on('before-quit', (e) => {
-    if (quitting || !active.size) return;
+    if (quitting || (!active.size && !mediaRuns.size)) return;
     const n = dialog.showMessageBoxSync(win, { type: 'warning', buttons: ['Keep running', 'Quit anyway'], defaultId: 0, cancelId: 0,
       message: 'Publishing is still in progress', detail: 'Quitting now stops it. Nothing is lost or duplicated: posts already confirmed are recorded, and signed-but-unconfirmed notes are re-sent with the same ID next time.' });
     if (n === 0) e.preventDefault(); else quitting = true;
@@ -89,7 +92,7 @@ function createWindow() {
   });
   win.webContents.on('will-navigate', (e) => e.preventDefault());
   win.on('close', (e) => {
-    if (!active.size) return;
+    if (!active.size && !mediaRuns.size) return;
     const n = dialog.showMessageBoxSync(win, { type: 'warning', buttons: ['Keep window open', 'Close and stop'], defaultId: 0, cancelId: 0,
       message: 'Publishing is still in progress', detail: 'Closing the window quits the app and stops the run. It can be resumed later without duplicates.' });
     if (n === 0) e.preventDefault(); else { quitting = true; for (const a of active.values()) a.cancel = true; }
@@ -230,6 +233,45 @@ function registerIpc() {
   handle('job:progress', () => [...active.values()].map((a) => a.run));
   handle('job:cancel', async (jobId) => { const a = active.get(str(jobId, 60)); if (!a) return false; if (!(await confirm('Stop this run after the current note?', 'Confirmed notes stay recorded; the rest are picked up next time without duplicates.'))) return false; a.cancel = true; return true; });
   handle('about:info', () => About.aboutInfo());
+  // ---- optional local export of posts + media (separate from Nostr publishing) ----
+  handle('media:chooseFolder', async (jobId) => {
+    const j = store.getJob(str(jobId, 60)); if (!j) throw new Error('Unknown profile');
+    const def = j.downloadFolder || path.join(app.getPath('downloads'), 'X to Nostr Mirror');
+    const p = await dialog.showOpenDialog(win, { title: 'Choose where to save exported posts and media', defaultPath: def, buttonLabel: 'Use this folder', properties: ['openDirectory', 'createDirectory'] });
+    if (p.canceled || !p.filePaths[0]) return null;
+    j.downloadFolder = p.filePaths[0]; store.upsertJob(j); return j.downloadFolder;
+  });
+  handle('media:prepare', async (jobId, xids, quality, probe) => {
+    const id = str(jobId, 60); const c = previewCache.get(id); if (!c) throw new Error('Fetch posts first');
+    const ids = (Array.isArray(xids) ? xids : []).filter((x) => /^\d+$/.test(x)).slice(0, 5000);
+    const items = Media.collectMedia(loadBatch(c.responses), ids, { quality: quality === 'lowest' ? 'lowest' : 'highest' });
+    const summary = probe ? await Media.estimate(items) : Media.summarize(items);
+    mediaPlans.set(id, { items, ids, summary });
+    return { summary, posts: ids.length, items: items.map(({ xid, type, status, filename, size, sizeSource, bitrate, note }) => ({ xid, type, status, filename, size, sizeSource, bitrate, note })) };
+  });
+  handle('media:download', async (jobId, opts) => {
+    const id = str(jobId, 60); const j = store.getJob(id); const plan = mediaPlans.get(id); const c = previewCache.get(id);
+    if (!j || !plan || !c) throw new Error('Prepare the download first');
+    if (!j.downloadFolder) throw new Error('Choose a folder first');
+    if (mediaRuns.has(id)) throw new Error('A download for this profile is already running');
+    const s = plan.summary; const capGB = Math.max(0.1, Math.min(50, Number(opts?.capGB) || 5));
+    const withMedia = opts?.media !== false;
+    const gb = (b) => (b / 1024 ** 3).toFixed(2) + ' GB';
+    const detail = `Folder: ${j.downloadFolder}\nPosts (JSON): ${plan.ids.length}\n` + (withMedia ? `Media files: ${s.files} — known size ${gb(s.knownBytes)} for ${s.knownCount} file(s), size unknown for ${s.unknownCount}.\n${s.hlsOnly} stream-only video(s) and ${s.missing} missing item(s) will be skipped.\nDownload stops at ${capGB} GB total.\nSizes are estimates from the X media servers; actual traffic may differ slightly.` : 'Media files: not downloaded (JSON only).') + '\nNothing is uploaded and nothing is posted to Nostr.';
+    if (!(await confirm('Save to your computer?', detail))) return { cancelled: true };
+    const dir = Media.exportDir(j.downloadFolder, j);
+    const posts = Media.exportPosts(dir, loadBatch(c.responses), plan.ids, j);
+    if (!withMedia) return { done: true, dir, posts };
+    const entry = { cancel: false, progress: null }; mediaRuns.set(id, entry);
+    Media.downloadAll(plan.items, dir, { maxTotalBytes: capGB * 1024 ** 3, shouldStop: () => entry.cancel,
+      onProgress: (p) => { entry.progress = p; broadcast({ type: 'download', jobId: id, progress: p }); } })
+      .then((r) => { store.log(id, `media export: ${r.completed} saved, ${r.skipped} already saved, ${r.failed} failed, ${r.cancelled} cancelled (${r.bytes} bytes)`); broadcast({ type: 'download-finished', jobId: id, result: { ...r, results: undefined }, dir }); })
+      .catch((e) => broadcast({ type: 'download-finished', jobId: id, error: e.message }))
+      .finally(() => mediaRuns.delete(id));
+    return { started: true, dir, posts };
+  });
+  handle('media:cancel', (jobId) => { const e = mediaRuns.get(str(jobId, 60)); if (e) e.cancel = true; return Boolean(e); });
+  handle('media:openFolder', (jobId) => { const j = store.getJob(str(jobId, 60)); if (!j?.downloadFolder) throw new Error('No folder'); return shell.openPath(j.downloadFolder).then(() => true); });
   handle('app:openLink', (key) => { shell.openExternal(About.externalUrl(str(key, 30))); return true; });
   handle('about:copyNpub', () => { clipboard.writeText(About.validNpub(About.AUTHOR_NPUB)); return true; });
   handle('app:guide', () => fs.readFileSync(path.join(__dirname, '..', '..', 'docs', 'USER_GUIDE.md'), 'utf8'));
@@ -259,7 +301,7 @@ function registerIpc() {
   });
   handle('config:export', async () => {
     const p = await dialog.showSaveDialog(win, { defaultPath: 'x-nostr-mirror-profiles.json' }); if (p.canceled) return false;
-    const jobs = store.listJobs().map(({ id, lastRunAt, lastResult, consecutiveFailures, ...rest }) => ({ ...rest, publishEnabled: false, schedule: rest.schedule ? { ...rest.schedule, enabled: false } : undefined }));
+    const jobs = store.listJobs().map(({ id, lastRunAt, lastResult, consecutiveFailures, downloadFolder, ...rest }) => ({ ...rest, publishEnabled: false, schedule: rest.schedule ? { ...rest.schedule, enabled: false } : undefined }));
     fs.writeFileSync(p.filePath, JSON.stringify({ format: 'x-nostr-mirror-config', version: 1, jobs }, null, 1)); return true; // no secrets, no state
   });
   handle('config:import', async () => {

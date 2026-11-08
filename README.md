@@ -10,14 +10,14 @@ This repository contains the **app source code** and the **user guide**.
 |---|---|
 | 📖 User guide | [docs/USER_GUIDE.md](docs/USER_GUIDE.md) |
 | 🛠 Build it on a Mac | [docs/BUILD_MAC.md](docs/BUILD_MAC.md) |
-| 💻 Source code | [app/](app): Electron + Node.js, current version **0.2.0** |
+| 💻 Source code | [app/](app): Electron + Node.js, current version **0.3.0** |
 | 🔁 Migrating from scripts | [app/docs/MIGRATION.md](app/docs/MIGRATION.md) |
 
 ## Status
 
 - **v0.1** was built and tested on an Apple Silicon (M2) Mac and works.
-- **v0.2.0** (this source) passes its automated tests (fake data, local test relays) and was packaged on
-  Linux. It has **not yet been verified on a Mac**.
+- **v0.2.0 and v0.3.0** (this source) pass their automated tests (fake data, local test servers) and were
+  packaged on Linux. They have **not yet been verified on a Mac**.
 - Builds are **unsigned and not notarized**. See [BUILD_MAC.md](docs/BUILD_MAC.md).
 - No prebuilt downloads are published here. Build from source.
 
@@ -34,6 +34,9 @@ This repository contains the **app source code** and the **user guide**.
   that keeps running while you navigate.
 - Schedules with start time, interval, active hours and time zone. They run while the app is open, or
   through an optional macOS LaunchAgent; nothing runs while the Mac sleeps.
+- Pictures and videos: notes **link** to X's media servers; nothing is re-uploaded. You can optionally
+  **save selected posts (JSON) and their picture/MP4 files** to a folder you choose, with a size estimate,
+  confirmation, stop limit and cancel.
 - Keys and token encrypted with the macOS Keychain; hardened Electron window; no telemetry.
 
 ## Quick build

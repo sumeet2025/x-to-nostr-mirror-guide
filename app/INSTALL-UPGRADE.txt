@@ -1,24 +1,24 @@
-X to Nostr Mirror 0.2.0 - Install / Upgrade (Apple Silicon Mac)
+X to Nostr Mirror 0.3.0 - Install / Upgrade (Apple Silicon Mac)
 ================================================================
 
 IF YOU RECEIVED THE APP IN PARTS (.part01, .part02, ...)
   1. Put all the parts and join-parts.sh in the same folder (e.g. Downloads).
   2. Open Terminal and run:   bash ~/Downloads/join-parts.sh
      (use the folder where you saved them). It checks every part and the final checksum, then creates
-     X-to-Nostr-Mirror-0.2.0-arm64-mac-UNSIGNED.zip. If any part is missing or damaged it says so and stops.
+     X-to-Nostr-Mirror-0.3.0-arm64-mac-UNSIGNED.zip. If any part is missing or damaged it says so and stops.
 
-UPGRADE FROM 0.1.x
+UPGRADE FROM 0.1.x / 0.2.x
   1. Wait until no profile is publishing, then quit the app (Cmd+Q).
   2. Unzip the new app and drag "X to Nostr Mirror.app" into Applications -> Replace.
   3. Open it (first time: right-click -> Open -> Open, because it is not signed by Apple).
      If macOS asks to use the Keychain item "X to Nostr Mirror Safe Storage", choose Always Allow.
   Your profiles, encrypted keys/token, history (no duplicates) and background agent are kept. They live in
   ~/Library/Application Support/X to Nostr Mirror/ ; a backup of settings + checkpoints is made in its
-  backups/ folder on first start of 0.2.0.
+  backups/ folder on first start of 0.3.0.
 
 NEW INSTALL
   Unzip, move the app to Applications, open it as above, then follow the guide (About -> Read guide, or
   https://github.com/sumeet2025/x-to-nostr-mirror-guide/blob/main/docs/USER_GUIDE.md).
 
-This 0.2.0 build was built on Linux and has not yet been run on a Mac. If anything is wrong, keep using the
+This 0.3.0 build was built on Linux and has not yet been run on a Mac. If anything is wrong, keep using the
 0.1 app (your data is untouched) and report it.

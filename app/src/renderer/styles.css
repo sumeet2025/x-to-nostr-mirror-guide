@@ -29,3 +29,4 @@ pre.guide{max-height:none;font-size:13px;line-height:1.5;font-family:-apple-syst
 li .sub{display:block;font-size:11px;color:#8b91a7;margin-top:2px}li .nm{overflow:hidden;text-overflow:ellipsis}
 .stat small{display:block;color:#8b91a7;font-size:11px;margin-top:2px}.stats{flex-wrap:wrap}
 .runstate{font-weight:600}.runstate.failed,.runstate.interrupted{color:#f87171}.runstate.done{color:#4ade80}.runstate.running{color:#c4b5fd}.runstate.cancelled{color:#fbbf24}
+details.card summary{cursor:pointer}select.small2{width:auto}

@@ -1,7 +1,7 @@
 {
   "name": "x-nostr-mirror",
   "productName": "X to Nostr Mirror",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Local desktop app that mirrors X (Twitter) posts to Nostr, with multiple profiles and a scheduler.",
   "main": "src/main/main.js",
   "license": "MIT",

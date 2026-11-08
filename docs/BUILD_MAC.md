@@ -6,7 +6,7 @@ These steps build the app from the source in [`app/`](../app) and produce an **u
 Status:
 
 - Version 0.1 was built and run successfully on an Apple Silicon (M2) Mac.
-- Version 0.2.0, which is the source here, passes its automated tests and was packaged on Linux. It has
+- Versions 0.2.0 and 0.3.0 (the source here) pass their automated tests and were packaged on Linux. They have
   **not yet been verified on a Mac**.
 
 ## Prerequisites
@@ -38,7 +38,7 @@ bash scripts/build-mac.sh
 
 1. Checks that Node.js is 22.12 or newer.
 2. `npm ci`: installs the exact dependency versions from `package-lock.json`.
-3. `npm test`: about 29 tests using fake data and local test relays. Nothing is posted anywhere.
+3. `npm test`: about 35 tests using fake data and local test relays. Nothing is posted anywhere.
 4. `npm run security-check`: static checks of the app's security settings.
 5. `npx electron-builder --mac zip --arm64` on Apple Silicon, or `--x64` on Intel (picked automatically
    with `uname -m`).
@@ -47,8 +47,8 @@ Output, with the version from `package.json`:
 
 | Mac | File |
 |---|---|
-| Apple Silicon | `app/dist/X to Nostr Mirror-0.2.0-arm64-mac.zip` (unpacked app in `app/dist/mac-arm64/`) |
-| Intel | `app/dist/X to Nostr Mirror-0.2.0-mac.zip` (unpacked app in `app/dist/mac/`) |
+| Apple Silicon | `app/dist/X to Nostr Mirror-0.3.0-arm64-mac.zip` (unpacked app in `app/dist/mac-arm64/`) |
+| Intel | `app/dist/X to Nostr Mirror-0.3.0-mac.zip` (unpacked app in `app/dist/mac/`) |
 
 To build a specific architecture by hand (after `npm ci`):
 

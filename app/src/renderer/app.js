@@ -64,7 +64,7 @@ function fillForm(j) {
   $('sPublish').checked = Boolean(j.publishEnabled);
   $('schedStatus').textContent = j.nextRunAt ? 'Next run: ' + fmt(j.nextRunAt) + (j.lastRunAt ? ' · Last run: ' + fmt(j.lastRunAt) + (j.lastResult?.ok ? ' ✓' : ' ✗ ' + (j.lastResult?.error || 'failed')) : '') : 'Scheduled publishing is off.';
   const f = j.fetchFilter || {}; $('rFrom').value = f.from || ''; $('rTo').value = f.to || ''; $('rTz').value = f.timezone || status.timezone;
-  renderPosts(); renderStrip(); renderProgress();
+  renderPosts(); renderStrip(); renderProgress(); renderDl();
   $('deleteJob').classList.toggle('hidden', !j.id);
 }
 function formJob() {
@@ -196,4 +196,38 @@ $('openProfile').onclick = () => call('appOpenLink', 'authorProfile');
 $('aboutGuideOnline').onclick = () => call('appOpenLink', 'guide');
 async function openGuide() { show('guide'); $('guideText').textContent = await call('appGuide'); }
 $('guideBtn').onclick = openGuide; $('aboutGuideLocal').onclick = openGuide;
+// ---- optional local export ----
+const human = (b) => (b >= 1024 ** 3 ? (b / 1024 ** 3).toFixed(2) + ' GB' : b >= 1024 ** 2 ? (b / 1024 ** 2).toFixed(1) + ' MB' : Math.round(b / 1024) + ' KB');
+const dl = {}; // jobId -> {progress, summary}
+function selectedIds() { const pv = cur && previews[cur.id]; return pv ? [...pv.selected] : []; }
+function renderDl() {
+  if (!cur) return; $('dlFolder').textContent = cur.downloadFolder ? 'Folder: ' + cur.downloadFolder : 'No folder chosen (suggested: Downloads/X to Nostr Mirror)';
+  const d = dl[cur.id] || {}; $('dlSummary').textContent = d.summaryText || ''; $('dlProgress').textContent = d.progressText || '';
+  $('dlCancel').classList.toggle('hidden', !d.running); $('dlStart').disabled = Boolean(d.running); $('dlCheck').disabled = Boolean(d.running);
+}
+function summaryText(r) {
+  const s = r.summary; if (!s.files && !s.hlsOnly && !s.missing) return `${r.posts} post(s) selected; they have no pictures or videos.`;
+  return `${r.posts} post(s), ${s.files} file(s). ` + (s.knownCount || s.unknownCount ? `Known size: ${human(s.knownBytes)} for ${s.knownCount} file(s)` + (s.unknownCount ? `; size unknown for ${s.unknownCount} file(s)` : '') + '. ' : '') + (s.hlsOnly ? `${s.hlsOnly} stream-only video(s) can't be saved. ` : '') + (s.missing ? `${s.missing} missing. ` : '') + 'Sizes are estimates reported by X\'s media servers.';
+}
+async function prepareDl(probe) {
+  const ids = selectedIds(); if (!ids.length) return banner('Select posts in the list first.', true);
+  dl[cur.id] = { ...(dl[cur.id] || {}), summaryText: probe ? 'Checking sizes (small requests to X\'s media servers, no files are downloaded)…' : '' }; renderDl();
+  const r = await call('mediaPrepare', cur.id, ids, $('dlQuality').value, probe); dl[cur.id].summaryText = probe ? summaryText(r) : ''; renderDl(); return r;
+}
+$('dlChoose').onclick = async () => { const f = await call('mediaChooseFolder', cur.id); if (f) { cur.downloadFolder = f; renderDl(); } };
+$('dlOpen').onclick = () => call('mediaOpenFolder', cur.id);
+$('dlCheck').onclick = () => prepareDl(true);
+$('dlStart').onclick = async () => {
+  if (!cur.downloadFolder) { const f = await call('mediaChooseFolder', cur.id); if (!f) return; cur.downloadFolder = f; }
+  if (!(dl[cur.id] && dl[cur.id].summaryText)) await prepareDl($('dlMedia').checked); else await call('mediaPrepare', cur.id, selectedIds(), $('dlQuality').value, $('dlMedia').checked);
+  const r = await call('mediaDownload', cur.id, { media: $('dlMedia').checked, capGB: Number($('dlCap').value) });
+  if (r.cancelled) return;
+  if (r.done) { banner(`Saved ${r.posts.posts} post(s) as JSON.`); return; }
+  dl[cur.id].running = true; dl[cur.id].progressText = `Saved post data (${r.posts.posts} posts). Downloading media…`; renderDl();
+};
+$('dlCancel').onclick = () => call('mediaCancel', cur.id);
+onAppEvent((m) => {
+  if (m.type === 'download') { const p = m.progress; dl[m.jobId] = { ...(dl[m.jobId] || {}), running: true, progressText: `Downloading: ${p.completed} saved, ${p.skipped} already saved, ${p.failed} failed, ${p.remaining} remaining · ${human(p.bytes)} received` }; if (cur && cur.id === m.jobId) renderDl(); }
+  if (m.type === 'download-finished') { const r = m.result; dl[m.jobId] = { ...(dl[m.jobId] || {}), running: false, progressText: m.error ? 'Download failed: ' + m.error : `Finished: ${r.completed} saved, ${r.skipped} already saved, ${r.failed} failed, ${r.cancelled} cancelled · ${human(r.bytes)}` }; if (cur && cur.id === m.jobId) renderDl(); banner(dl[m.jobId].progressText, Boolean(m.error || r.failed)); }
+});
 refresh().then(syncProgress).then(() => (jobs.length ? openJob(jobs[0].id) : show('empty')));

@@ -48,6 +48,12 @@ right-click → Open → Open. Run from source instead: `npm ci && npm start`.
 - **Asleep/off/offline Macs run nothing.** On the next run, missed slots collapse into one catch-up run and
   the checkpoint ensures nothing is skipped (it just publishes later). Notes keep original timestamps if chosen.
 
+## Pictures and videos
+Notes link to media on X's servers (with `imeta` tags); nothing is re-uploaded, and relays don't store video files.
+Optionally, **Save selected posts & media to this computer** (Posts tab) writes the posts' JSON and picture/MP4
+files to a folder you choose. It shows a size estimate first (unknown sizes are listed separately), asks you to
+confirm, has a stop limit and cancel, and never overwrites files.
+
 ## How it avoids duplicates
 Per profile, `state.json` maps each X post id → Nostr event id, plus skipped/failed lists and a checkpoint
 (`newest_seen_id`). The checkpoint only advances past posts that were fully handled; a failed post (fewer
